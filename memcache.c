@@ -577,7 +577,7 @@ int mmc_prepare_tag_ex(const char *key, unsigned int key_len, char *result, unsi
 	result[*result_len] = '\0';
 	
 	for (i=0; i<*result_len; i++) {
-		result[i] = key[i]; // > ' ' ? key[i] : '_';
+		result[i] = key[i]  >= ' ' ? key[i] : '_';
 	}
 	
 	return MMC_OK;
