@@ -564,6 +564,24 @@ int mmc_prepare_key_ex(const char *key, unsigned int key_len, char *result, unsi
 	
 	return MMC_OK;
 }
+
+int mmc_prepare_tag_ex(const char *key, unsigned int key_len, char *result, unsigned int *result_len TSRMLS_DC)  /* {{{ */
+{
+	unsigned int i;
+	if (key_len == 0) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Tag cannot be empty");
+		return MMC_REQUEST_FAILURE;
+	}
+	
+	*result_len = key_len < MMC_KEY_MAX_SIZE ? key_len : MMC_KEY_MAX_SIZE;
+	result[*result_len] = '\0';
+	
+	for (i=0; i<*result_len; i++) {
+		result[i] = key[i]; // > ' ' ? key[i] : '_';
+	}
+	
+	return MMC_OK;
+}
 /* }}} */
 
 int mmc_prepare_key(zval *key, char *result, unsigned int *result_len TSRMLS_DC)  /* {{{ */
@@ -589,6 +607,29 @@ int mmc_prepare_key(zval *key, char *result, unsigned int *result_len TSRMLS_DC)
 	}
 }
 /* }}} */
+
+int mmc_prepare_tag(zval *key, char *result, unsigned int *result_len TSRMLS_DC)  /* {{{ */
+{
+	if (Z_TYPE_P(key) == IS_STRING) {
+		return mmc_prepare_tag_ex(Z_STRVAL_P(key), Z_STRLEN_P(key), result, result_len TSRMLS_CC);
+	} else {
+		int res;
+		zval *keytmp;
+		ALLOC_ZVAL(keytmp);
+		
+		*keytmp = *key;
+		zval_copy_ctor(keytmp);
+		INIT_PZVAL(keytmp);
+		convert_to_string(keytmp);
+		
+		res = mmc_prepare_tag_ex(Z_STRVAL_P(keytmp), Z_STRLEN_P(keytmp), result, result_len TSRMLS_CC);
+		
+		zval_dtor(keytmp);
+		FREE_ZVAL(keytmp);
+		
+		return res;
+	}
+}
 
 static unsigned int mmc_hash_crc32(const char *key, int key_len) /* 
 	CRC32 hash {{{ */
@@ -2692,7 +2733,7 @@ PHP_FUNCTION(memcache_tags_delete)
 		while (zend_hash_get_current_data_ex(Z_ARRVAL_P(tags), (void **)&tag, &pos) == SUCCESS) {
 			zend_hash_move_forward_ex(Z_ARRVAL_P(tags), &pos);
 
- 			if (mmc_prepare_key(*tag, tag_tmp, &tag_tmp_len) != MMC_OK) {
+ 			if (mmc_prepare_tag(*tag, tag_tmp, &tag_tmp_len) != MMC_OK) {
  				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid tag");
  				continue;
  			}
@@ -2713,7 +2754,7 @@ PHP_FUNCTION(memcache_tags_delete)
  		}
  	}
  	else {
-		if (mmc_prepare_key(tags, tag_tmp, &tag_tmp_len TSRMLS_CC) != MMC_OK) {
+		if (mmc_prepare_tag(tags, tag_tmp, &tag_tmp_len TSRMLS_CC) != MMC_OK) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid tag");
 			RETURN_FALSE;
 		}

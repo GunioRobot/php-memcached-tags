@@ -162,6 +162,9 @@ void mmc_server_deactivate(mmc_t * TSRMLS_DC);
 int mmc_prepare_key(zval *, char *, unsigned int * TSRMLS_DC);
 int mmc_prepare_key_ex(const char *, unsigned int, char *, unsigned int * TSRMLS_DC);
 
+int mmc_prepare_tag(zval *, char *, unsigned int * TSRMLS_DC);
+int mmc_prepare_tag_ex(const char *, unsigned int, char *, unsigned int * TSRMLS_DC);
+
 mmc_pool_t *mmc_pool_new(TSRMLS_D);
 void mmc_pool_free(mmc_pool_t * TSRMLS_DC);
 void mmc_pool_add(mmc_pool_t *, mmc_t *, unsigned int);
