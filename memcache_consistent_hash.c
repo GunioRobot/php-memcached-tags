@@ -12,12 +12,12 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Authors: Antony Dovgal <tony2001@phpclub.net>                        |
+  | Authors: Antony Dovgal <tony@daylessday.org>                         |
   |          Mikael Johansson <mikael AT synd DOT info>                  |
   +----------------------------------------------------------------------+
 */
 
-/* $Id: memcache_consistent_hash.c,v 1.3 2007/09/02 10:48:13 mikl Exp $ */
+/* $Id: memcache_consistent_hash.c,v 1.7 2009/01/15 18:11:41 mikl Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -87,8 +87,8 @@ static mmc_t *mmc_consistent_find(mmc_consistent_state_t *state, unsigned int po
 			return state->points[lo].server;
 		}
 
-		/* best guess with random distribution, distance between lowpoint and point scaled down to lo-hi interval */
-		mid = lo + (hi - lo) * (point - state->points[lo].point) / (state->points[hi].point - state->points[lo].point);
+		/* test middle point */
+		mid = lo + (hi - lo) / 2;
 		MMC_DEBUG(("mmc_consistent_find: lo %d, hi %d, mid %d, point %u, midpoint %u", lo, hi, mid, point, state->points[mid].point));
 
 		/* perfect match */
@@ -107,7 +107,7 @@ static mmc_t *mmc_consistent_find(mmc_consistent_state_t *state, unsigned int po
 }
 /* }}} */
 
-static void mmc_consistent_pupulate_buckets(mmc_consistent_state_t *state) /* {{{ */
+static void mmc_consistent_populate_buckets(mmc_consistent_state_t *state) /* {{{ */
 {
 	unsigned int i, step = 0xffffffff / MMC_CONSISTENT_BUCKETS;
 
@@ -129,7 +129,7 @@ mmc_t *mmc_consistent_find_server(void *s, const char *key, int key_len TSRMLS_D
 		unsigned int i, hash = state->hash(key, key_len);
 
 		if (!state->buckets_populated) {
-			mmc_consistent_pupulate_buckets(state);
+			mmc_consistent_populate_buckets(state);
 		}
 
 		mmc = state->buckets[hash % MMC_CONSISTENT_BUCKETS];
@@ -159,23 +159,25 @@ void mmc_consistent_add_server(void *s, mmc_t *mmc, unsigned int weight) /* {{{ 
 {
 	mmc_consistent_state_t *state = s;
 	int i, key_len, points = weight * MMC_CONSISTENT_POINTS;
-	char *key;
+
+	/* buffer for "host:port-i\0" */
+	char *key = emalloc(strlen(mmc->host) + MAX_LENGTH_OF_LONG * 2 + 3);
 
 	/* add weight * MMC_CONSISTENT_POINTS number of points for this server */
 	state->points = erealloc(state->points, sizeof(mmc_consistent_point_t) * (state->num_points + points));
 
 	for (i=0; i<points; i++) {
-		key_len = spprintf(&key, 0, "%s:%d-%d", mmc->host, mmc->port, i);
+		key_len = sprintf(key, "%s:%d-%d", mmc->host, mmc->port, i);
 		state->points[state->num_points + i].server = mmc;
 		state->points[state->num_points + i].point = state->hash(key, key_len);
 		MMC_DEBUG(("mmc_consistent_add_server: key %s, point %lu", key, state->points[state->num_points + i].point));
-		efree(key);
 	}
 
 	state->num_points += points;
 	state->num_servers++;
-
 	state->buckets_populated = 0;
+
+	efree(key);
 }
 /* }}} */
 

@@ -12,12 +12,12 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Authors: Antony Dovgal <tony2001@phpclub.net>                        |
+  | Authors: Antony Dovgal <tony@daylessday.org>                         |
   |          Mikael Johansson <mikael AT synd DOT info>                  |
   +----------------------------------------------------------------------+
 */
 
-/* $Id: php_memcache.h,v 1.31 2007/11/01 14:01:38 mikl Exp $ */
+/* $Id: php_memcache.h,v 1.39 2009/02/27 17:46:22 mikl Exp $ */
 
 #ifndef PHP_MEMCACHE_H
 #define PHP_MEMCACHE_H
@@ -61,9 +61,12 @@ PHP_FUNCTION(memcache_increment);
 PHP_FUNCTION(memcache_decrement);
 PHP_FUNCTION(memcache_close);
 PHP_FUNCTION(memcache_flush);
-PHP_FUNCTION(memcache_tag_add);		//tag related
+PHP_FUNCTION(memcache_setoptimeout);
+PHP_FUNCTION(memcache_tag_add);			//tag related
 PHP_FUNCTION(memcache_tag_delete);	//tag related
-PHP_FUNCTION(memcache_tags_delete);
+PHP_FUNCTION(memcache_tags_delete);	//tags related
+
+#define PHP_MEMCACHE_VERSION "2.2.5"
 
 #define MMC_BUF_SIZE 4096
 #define MMC_SERIALIZED 1
@@ -97,6 +100,8 @@ typedef struct mmc {
 	char					*host;
 	unsigned short			port;
 	long					timeout;
+	long					timeoutms; /* takes precedence over timeout */
+	long					connect_timeoutms; /* takes precedence over timeout */
 	long					failed;
 	long					retry_interval;
 	int						persistent;
@@ -151,7 +156,14 @@ ZEND_BEGIN_MODULE_GLOBALS(memcache)
 	long max_failover_attempts;
 	long hash_strategy;
 	long hash_function;
+	long default_timeout_ms;
 ZEND_END_MODULE_GLOBALS(memcache)
+
+#if (PHP_MAJOR_VERSION == 5) && (PHP_MINOR_VERSION >= 3)
+#   define IS_CALLABLE(cb_zv, flags, cb_sp) zend_is_callable((cb_zv), (flags), (cb_sp) TSRMLS_CC)
+#else
+#   define IS_CALLABLE(cb_zv, flags, cb_sp) zend_is_callable((cb_zv), (flags), (cb_sp))
+#endif
 
 /* internal functions */
 mmc_t *mmc_server_new(char *, int, unsigned short, int, int, int TSRMLS_DC);
@@ -161,9 +173,6 @@ void mmc_server_deactivate(mmc_t * TSRMLS_DC);
 
 int mmc_prepare_key(zval *, char *, unsigned int * TSRMLS_DC);
 int mmc_prepare_key_ex(const char *, unsigned int, char *, unsigned int * TSRMLS_DC);
-
-int mmc_prepare_tag(zval *, char *, unsigned int * TSRMLS_DC);
-int mmc_prepare_tag_ex(const char *, unsigned int, char *, unsigned int * TSRMLS_DC);
 
 mmc_pool_t *mmc_pool_new(TSRMLS_D);
 void mmc_pool_free(mmc_pool_t * TSRMLS_DC);
