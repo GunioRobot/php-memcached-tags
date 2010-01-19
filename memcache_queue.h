@@ -12,12 +12,12 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Authors: Antony Dovgal <tony2001@phpclub.net>                        |
+  | Authors: Antony Dovgal <tony@daylessday.org>                         |
   |          Mikael Johansson <mikael AT synd DOT info>                  |
   +----------------------------------------------------------------------+
 */
 
-/* $Id: memcache_queue.h,v 1.2 2007/10/17 19:40:41 mikl Exp $ */
+/* $Id: memcache_queue.h,v 1.4 2008/08/16 10:15:54 tony2001 Exp $ */
 
 #ifndef MEMCACHE_QUEUE_H_
 #define MEMCACHE_QUEUE_H_
@@ -37,12 +37,12 @@ typedef struct mmc_queue {
 #define mmc_queue_reset(q) (q)->len = (q)->head = (q)->tail = 0
 #define mmc_queue_item(q, i) ((q)->tail + (i) < (q)->alloc ? (q)->items[(q)->tail + (i)] : (q)->items[(i) - ((q)->alloc - (q)->tail)]) 
 
-inline void mmc_queue_push(mmc_queue_t *, void *);
-inline void *mmc_queue_pop(mmc_queue_t *);
-inline int mmc_queue_contains(mmc_queue_t *, void *);
-inline void mmc_queue_free(mmc_queue_t *);
-inline void mmc_queue_copy(mmc_queue_t *, mmc_queue_t *);
-inline void mmc_queue_remove(mmc_queue_t *, void *);
+void mmc_queue_push(mmc_queue_t *, void *);
+void *mmc_queue_pop(mmc_queue_t *);
+int mmc_queue_contains(mmc_queue_t *, void *);
+void mmc_queue_free(mmc_queue_t *);
+void mmc_queue_copy(mmc_queue_t *, mmc_queue_t *);
+void mmc_queue_remove(mmc_queue_t *, void *);
 
 #endif /*MEMCACHE_QUEUE_H_*/
 

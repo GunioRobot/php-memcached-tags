@@ -12,12 +12,12 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Authors: Antony Dovgal <tony2001@phpclub.net>                        |
+  | Authors: Antony Dovgal <tony@daylessday.org>                         |
   |          Mikael Johansson <mikael AT synd DOT info>                  |
   +----------------------------------------------------------------------+
 */
 
-/* $Id: memcache_standard_hash.c,v 1.4 2007/10/17 18:52:01 mikl Exp $ */
+/* $Id: memcache_standard_hash.c,v 1.5 2008/08/16 10:15:54 tony2001 Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
