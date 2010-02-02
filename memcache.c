@@ -584,42 +584,55 @@ static int mmc_server_tag_add(mmc_t *mmc, const char *request, int request_len T
 //tag related
 
 
-int mmc_prepare_tag_ex(const char *key, unsigned int key_len, char *result, unsigned int *result_len TSRMLS_DC)  /* {{{ */
+int mmc_prepare_tag_ex(const char *tag, unsigned int tag_len, char *result, unsigned int *result_len TSRMLS_DC)  /* {{{ */
 {
-	unsigned int i;
-	if (key_len == 0) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Key cannot be empty");
-		return MMC_REQUEST_FAILURE;
-	}
+	char *token,*tc;
+	char r[1024];
+	int first = 1;
+	zval  *val;
 
-	*result_len = key_len < MMC_KEY_MAX_SIZE ? key_len : MMC_KEY_MAX_SIZE;
-	result[*result_len] = '\0';
-	
-	for (i=0; i<*result_len; i++) {
-		result[i] = ((unsigned char)key[i]) >= ' ' ? key[i] : '_';
+	ALLOC_INIT_ZVAL(val);
+
+	tc = strdup(tag);
+	token = strtok(tc, " ");
+	while(token != NULL ) {
+		ZVAL_STRINGL(val, token, strlen(token), 1);
+		mmc_prepare_key(val, r, result_len);
+		if(first == 1)
+		{
+			strcpy(result, r);
+			first = 0;
+		}
+		else {
+			strcat(result, " ");
+			strcat(result,r);
+		}
+		token = strtok(NULL, " ");
 	}
+	
+	*result_len = strlen(result);
 	
 	return MMC_OK;
 }
 /* }}} */
 
-int mmc_prepare_tag(zval *key, char *result, unsigned int *result_len TSRMLS_DC)  /* {{{ */
+int mmc_prepare_tag(zval *tag, char *result, unsigned int *result_len TSRMLS_DC)  /* {{{ */
 {
-	if (Z_TYPE_P(key) == IS_STRING) {
-		return mmc_prepare_tag_ex(Z_STRVAL_P(key), Z_STRLEN_P(key), result, result_len TSRMLS_CC);
+	if (Z_TYPE_P(tag) == IS_STRING) {
+		return mmc_prepare_tag_ex(Z_STRVAL_P(tag), Z_STRLEN_P(tag), result, result_len TSRMLS_CC);
 	} else {
 		int res;
-		zval *keytmp;
-		ALLOC_ZVAL(keytmp);
+		zval *tagtmp;
+		ALLOC_ZVAL(tagtmp);
 
-		*keytmp = *key;
-		zval_copy_ctor(keytmp);
-		convert_to_string(keytmp);
+		*tagtmp = *tag;
+		zval_copy_ctor(tagtmp);
+		convert_to_string(tagtmp);
 
-		res = mmc_prepare_tag_ex(Z_STRVAL_P(keytmp), Z_STRLEN_P(keytmp), result, result_len TSRMLS_CC);
+		res = mmc_prepare_tag_ex(Z_STRVAL_P(tagtmp), Z_STRLEN_P(tagtmp), result, result_len TSRMLS_CC);
 
-		zval_dtor(keytmp);
-		FREE_ZVAL(keytmp);
+		zval_dtor(tagtmp);
+		FREE_ZVAL(tagtmp);
 		
 		return res;
 	}

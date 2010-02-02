@@ -19,6 +19,7 @@ You will probably need libevent to install memcached. You can download it here: 
 
 * Kevin Morey <kevin@kmorey.net>
 * Josh Turmel <jturmel@gmail.com>
+* Chris Vaughn <chris@cvaughn.com>
 
 Usage:
 

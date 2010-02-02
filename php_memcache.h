@@ -66,7 +66,7 @@ PHP_FUNCTION(memcache_tag_add);			//tag related
 PHP_FUNCTION(memcache_tag_delete);	//tag related
 PHP_FUNCTION(memcache_tags_delete);	//tags related
 
-#define PHP_MEMCACHE_VERSION "2.2.5"
+#define PHP_MEMCACHE_VERSION "2.2.5.LC"
 
 #define MMC_BUF_SIZE 4096
 #define MMC_SERIALIZED 1
